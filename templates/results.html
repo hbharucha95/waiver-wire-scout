@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ league_name }} &mdash; Waiver Wire Scout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% macro pos_badge(position) %}<span class="pos-badge pos-{{ position if position in ['QB','RB','WR','TE','K','DEF'] else 'FA' }}">{{ position }}</span>{% endmacro %}
+  <div class="wrap-wide">
+    <div class="report-header">
+      <h1>🏈 {{ league_name }}</h1>
+      <p class="report-meta">Scouting report for {{ username }} &middot; {{ generated_at }}</p>
+    </div>
+
+    <details class="card accent-gold" open>
+      <summary>🎯 This week's pickups <span class="count">{{ recs|length }}</span><span class="chevron">▸</span></summary>
+      <div class="details-body">
+      {% if recs %}
+        {% for r in recs %}
+          <div style="margin-bottom:{{ '20px' if not loop.last else '0' }}; {{ 'padding-bottom:20px; border-bottom:1px solid var(--line);' if not loop.last else '' }}">
+            <div class="player-row" style="margin-bottom:10px;">
+              {% if r.add.headshot_url %}
+                <img class="headshot" src="{{ r.add.headshot_url }}" alt="" onerror="this.style.display='none'">
+              {% endif %}
+              <div>
+                <h3 style="font-size:1.05rem; margin-bottom:4px;">Add {{ r.add.name }}</h3>
+                {{ pos_badge(r.add.position) }}<span class="team-label">{{ r.add.team }}</span>
+              </div>
+            </div>
+            <p>{{ r.reason }}</p>
+            {% if r.drop_candidate %}
+              <p class="rec-footnote">Suggested drop: {{ r.drop_candidate.name }} ({{ r.drop_candidate.team }})
+                {% if r.drop_candidate.injury_status %}<span class="flag">&middot; {{ r.drop_candidate.injury_status }}</span>{% endif %}
+              </p>
+            {% else %}
+              <p class="rec-footnote">No obvious same-position drop on your bench &mdash; consider your weakest overall bench spot.</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="section-empty">No standout trending free agents this week for your roster's needs.</p>
+      {% endif %}
+      </div>
+    </details>
+
+    {% if handcuffs %}
+      <details class="card accent-gold" open>
+        <summary>⚡ Injury-driven pickups <span class="count">{{ handcuffs|length }}</span><span class="chevron">▸</span></summary>
+        <div class="details-body">
+        <p class="section-note">Based on depth chart position, not trending-add counts &mdash; catches these the moment an injury is reported, before other managers react.</p>
+        {% for h in handcuffs %}
+          <div style="margin-bottom:{{ '20px' if not loop.last else '0' }}; {{ 'padding-bottom:20px; border-bottom:1px solid var(--line);' if not loop.last else '' }}">
+            <div class="player-row" style="margin-bottom:10px;">
+              {% if h.headshot_url %}
+                <img class="headshot" src="{{ h.headshot_url }}" alt="" onerror="this.style.display='none'">
+              {% endif %}
+              <div>
+                <h3 style="font-size:1.05rem; margin-bottom:4px;">{{ h.name }}</h3>
+                {{ pos_badge(h.position) }}<span class="team-label">{{ h.team }}</span>
+              </div>
+            </div>
+            <p>Next up on the depth chart behind {{ h.injured_starter }} ({{ h.injured_starter_team }}), who is currently <span class="flag">{{ h.injured_starter_status }}</span>.</p>
+            {% if h.via == 'search_rank' %}<p class="rec-footnote">Depth chart data unavailable for this team &mdash; based on overall fantasy relevance instead.</p>{% endif %}
+          </div>
+        {% endfor %}
+        </div>
+      </details>
+    {% endif %}
+
+    {% if questionable %}
+      <details class="card">
+        <summary>🩺 Questionable this week <span class="count">{{ questionable|length }}</span><span class="chevron">▸</span></summary>
+        <div class="details-body">
+        <p class="section-note">Notable players across the NFL listed Questionable, with what Sleeper reports and a possible insurance pickup available in your league. Sleeper doesn't publish a play probability &mdash; use your own judgment, and weigh how recent the report is.</p>
+        {% for q in questionable %}
+          <div style="margin-bottom:{{ '20px' if not loop.last else '0' }}; {{ 'padding-bottom:20px; border-bottom:1px solid var(--line);' if not loop.last else '' }}">
+            <div class="player-row" style="margin-bottom:10px;">
+              {% if q.headshot_url %}
+                <img class="headshot" src="{{ q.headshot_url }}" alt="" onerror="this.style.display='none'">
+              {% endif %}
+              <div>
+                <h3 style="font-size:1.05rem; margin-bottom:4px;">{{ q.name }}</h3>
+                {{ pos_badge(q.position) }}<span class="team-label">{{ q.team }}</span>
+              </div>
+            </div>
+            <p>
+              {% if q.injury_body_part %}{{ q.injury_body_part }} injury.{% endif %}
+              {% if q.injury_notes %}{{ q.injury_notes }}{% endif %}
+              {% if not q.injury_body_part and not q.injury_notes %}No further injury detail reported.{% endif %}
+            </p>
+            <p class="rec-footnote">{% if q.news_updated %}Last updated {{ q.news_updated }}{% else %}No update timestamp available{% endif %}</p>
+            {% if q.insurance %}
+              <p class="rec-footnote">Possible insurance: {{ q.insurance.name }} ({{ q.insurance.team }}), available as a free agent</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+        </div>
+      </details>
+    {% endif %}
+
+    <details class="card">
+      <summary>📋 Your bench <span class="count">{{ bench|length }}</span><span class="chevron">▸</span></summary>
+      <div class="details-body">
+      {% for group in bench_groups %}
+        <details class="pos-group">
+          <summary>
+            {{ pos_badge(group.position) }}
+            <span>{{ group.players|length }} Player{{ 's' if group.players|length != 1 else '' }}</span>
+            <span class="chevron">▸</span>
+          </summary>
+          <div class="details-body">
+            {% for b in group.players %}
+              <div class="bench-item">
+                <span class="bench-player">
+                  {% if b.headshot_url %}
+                    <img class="headshot headshot-sm" src="{{ b.headshot_url }}" alt="" onerror="this.style.display='none'">
+                  {% endif %}
+                  {{ b.name }} <span class="team-label">{{ b.team }}</span>
+                </span>
+                <span>
+                  {% if b.is_reserve %}<span class="flag">IR</span>
+                  {% elif b.injury_status %}<span class="flag">{{ b.injury_status }}</span>{% endif %}
+                </span>
+              </div>
+            {% endfor %}
+          </div>
+        </details>
+      {% endfor %}
+      </div>
+    </details>
+
+    <p style="margin-top:8px;"><a href="{{ url_for('index') }}" class="link-quiet">&larr; Scout a different league</a></p>
+  </div>
+</body>
+</html>

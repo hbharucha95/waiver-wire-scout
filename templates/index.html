@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Waiver Wire Scout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="hero-page">
+    <div class="hero-content">
+      <div class="hero-mark">🏈</div>
+      <h1>Waiver Wire Scout</h1>
+      <p class="tagline">Weekly waiver recommendations, scouted from your real league data and explained in plain language.</p>
+
+      {% if error %}
+        <div class="error">{{ error }}</div>
+      {% endif %}
+
+      <div class="card" style="text-align:left;">
+        <form action="{{ url_for('leagues') }}" method="post">
+          <label for="username">Sleeper username</label>
+          <input type="text" id="username" name="username" required>
+          <button type="submit">Scout my leagues</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Choose an assignment &mdash; Waiver Wire Scout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page">
+    <div class="wrap">
+      <div class="report-header">
+        <h1>Choose an assignment</h1>
+        <p class="report-meta">Found {{ leagues|length }} league{{ 's' if leagues|length != 1 else '' }} for {{ username }}</p>
+      </div>
+
+      <form action="{{ url_for('recommendations') }}" method="post">
+        <input type="hidden" name="username" value="{{ username }}">
+        <input type="hidden" name="user_id" value="{{ user_id }}">
+
+        <div class="card" style="padding:0;">
+          {% for league in leagues %}
+            <div class="league-row">
+              <div>
+                <div class="league-name">{{ league.name }}</div>
+                <div class="league-meta">{{ league.total_rosters }} teams &middot; {{ league.status }}</div>
+              </div>
+              <button type="submit" name="league_id" value="{{ league.league_id }}" class="btn-sm">
+                Scout this league
+              </button>
+            </div>
+          {% endfor %}
+        </div>
+      </form>
+
+      <p style="margin-top:20px;"><a href="{{ url_for('index') }}" class="link-quiet">&larr; Try a different username</a></p>
+    </div>
+  </div>
+</body>
+</html>
